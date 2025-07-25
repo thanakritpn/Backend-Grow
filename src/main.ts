@@ -11,10 +11,12 @@ async function bootstrap() {
     origin: [
       'http://localhost:5174',
       'http://localhost:5175',
+      'http://127.0.0.1:5173', 
+    'http://localhost:5173',
     ],
     credentials: true, // Allow requests from Vite frontend
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS', // Allow these HTTP methods
-    allowedHeaders: 'Content-Type,Authorization,ngrok-skip-browser-warning', // Allow these headers
+    allowedHeaders: 'Content-Type,Authorization,ngrok-skip-browser-warning', 
   });
 
   // Serve static files for profile pictures
