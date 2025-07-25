@@ -1,9 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Post, Prisma } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Express } from 'express';
 
 @Injectable()
 export class PostsService {

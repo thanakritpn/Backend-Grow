@@ -54,4 +54,29 @@ export class ProfileController {
     }
     return this.profileService.requestConnect(Number(id), req.user.id, body.message);
   }
+
+
+
+
+
+// kate create
+  // @Post('cancel-register')
+  // async cancelRegister(@Body() body: { email: string }) {
+  //   return this.profileService.cancelRegistration(body.email);
+  // }
+  @Get('all')
+  async getAllUsers() {
+  return this.profileService.getAllUsers();
+}
+
+
+
+
+
+
+
+
+
+
+
 }

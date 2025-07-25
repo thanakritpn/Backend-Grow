@@ -18,6 +18,6 @@ import { JwtStrategy } from './jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy], // เพิ่ม JwtStrategy
+  providers: [AuthService, JwtStrategy], 
 })
 export class AuthModule {}

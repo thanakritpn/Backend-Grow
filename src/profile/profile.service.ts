@@ -223,29 +223,115 @@ export class ProfileService {
     };
   }
 
+  // async requestConnect(receiverId: number, senderId: number, message: string) {
+  //   const existingRequest = await this.prisma.chatRequest.findUnique({
+  //     where: { sender_id_receiver_id: { sender_id: senderId, receiver_id: receiverId } },
+  //   });
+
+  //   if (existingRequest) {
+  //     throw new BadRequestException('Connection request already exists');
+  //   }
+
+  //   const request = await this.prisma.chatRequest.create({
+  //     data: {
+  //       sender_id: senderId,
+  //       receiver_id: receiverId,
+  //       message,
+  //       status: 'PENDING',
+  //     },
+  //   });
+
+  //   return {
+  //     message: 'Connection request sent',
+  //     requestId: request.id,
+  //     senderId: senderId,
+  //     receiverId: receiverId,
+  //   };
+  // }
+
+  // kate edit ให้มันส่งซ้ำได้ มีการเปลี่ยน findfirst
   async requestConnect(receiverId: number, senderId: number, message: string) {
-    const existingRequest = await this.prisma.chatRequest.findUnique({
-      where: { sender_id_receiver_id: { sender_id: senderId, receiver_id: receiverId } },
-    });
+  const existingRequest = await this.prisma.chatRequest.findFirst({
+    where: {
+      sender_id: senderId,
+      receiver_id: receiverId,
+      status: 'PENDING', // ✅ ตรวจเฉพาะ request ที่ยังค้างอยู่
+    },
+  });
 
-    if (existingRequest) {
-      throw new BadRequestException('Connection request already exists');
-    }
-
-    const request = await this.prisma.chatRequest.create({
-      data: {
-        sender_id: senderId,
-        receiver_id: receiverId,
-        message,
-        status: 'PENDING',
-      },
-    });
-
-    return {
-      message: 'Connection request sent',
-      requestId: request.id,
-      senderId: senderId,
-      receiverId: receiverId,
-    };
+  if (existingRequest) {
+    throw new BadRequestException('A pending connection request already exists');
   }
+
+  const request = await this.prisma.chatRequest.create({
+    data: {
+      sender_id: senderId,
+      receiver_id: receiverId,
+      message,
+      status: 'PENDING',
+    },
+  });
+
+  return {
+    message: 'Connection request sent',
+    requestId: request.id,
+    senderId: senderId,
+    receiverId: receiverId,
+  };
+}
+
+// kate create
+// async cancelRegistration(email: string) {
+//   const user = await this.prisma.user.findUnique({
+//     where: { email },
+//     include: { otps: true },
+//   });
+
+//   if (!user) {
+//     throw new NotFoundException('User not found');
+//   }
+
+//   if (user.role !== 'GUEST') {
+//     throw new BadRequestException('Cannot delete verified user');
+//   }
+
+//   await this.prisma.otp.deleteMany({
+//     where: { user_id: user.id },
+//   });
+
+//   await this.prisma.user.delete({
+//     where: { email },
+//   });
+
+//   return {
+//     success: true,
+//     message: 'User registration cancelled successfully',
+//     timestamp: new Date().toISOString(),
+//   };
+// }
+async getAllUsers() {
+  const users = await this.prisma.user.findMany({
+    select: {
+      id: true,
+      username: true,
+      profile_picture: true,
+      cover_photo: true,
+      about_me: true,
+      knowledge_interests: true,
+      created_at: true,
+    },
+    orderBy: { created_at: 'desc' },
+  });
+
+  return {
+    success: true,
+    message: 'Fetched all users successfully',
+    timestamp: new Date().toISOString(),
+    data: users,
+  };
+}
+
+
+
+
 }

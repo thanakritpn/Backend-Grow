@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Express } from 'express';
 
+
 @Injectable()
 export class AuthService {
   private transporter = nodemailer.createTransport({
@@ -26,7 +27,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
     const token = this.jwtService.sign({ email: user.email, username: user.username });
-    return { token };
+    return {
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        profile_picture: user.profile_picture,
+      }
+    };
+
   }
 
   async registerStep1(data: { email: string; password: string; confirmPassword: string }) {

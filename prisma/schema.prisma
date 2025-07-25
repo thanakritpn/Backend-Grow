@@ -151,9 +151,6 @@
 //   VIDEO
 // }
 
-
-
-
 // generator client {
 //   provider = "prisma-client-js"
 // }
@@ -320,155 +317,175 @@ datasource db {
 }
 
 model User {
-  id                Int              @id @default(autoincrement())
-  username          String           @unique
-  email             String           @unique
-  password          String
-  role              Role             @default(GUEST)
-  about_me          String?
-  date_of_birth     DateTime?
-  profile_picture   String?
-  cover_photo       String?
-  last_active       DateTime?        @default(now())
-  created_at        DateTime         @default(now())
-  posts             Post[]
-  sent_messages     Message[]        @relation("SentMessages")
-  received_messages Message[]        @relation("ReceivedMessages")
+  id                   Int           @id @default(autoincrement())
+  username             String        @unique
+  email                String        @unique
+  password             String
+  role                 Role          @default(GUEST)
+  about_me             String?
+  date_of_birth        DateTime?
+  profile_picture      String?
+  cover_photo          String?
+  last_active          DateTime?     @default(now())
+  created_at           DateTime      @default(now())
+  posts                Post[]
+  sent_messages        Message[]     @relation("SentMessages")
+  received_messages    Message[]     @relation("ReceivedMessages")
   connections_as_user1 Connection[]  @relation("User1Connections")
   connections_as_user2 Connection[]  @relation("User2Connections")
-  knowledge_interests String[]       @default([]) // ใช้ String[] แทน UserCategory
-  chatRequestsSent  ChatRequest[]    @relation("Sender") // เพิ่มฟิลด์นี้
+  knowledge_interests  String[]      @default([]) // ใช้ String[] แทน UserCategory
+  chatRequestsSent     ChatRequest[] @relation("Sender") // เพิ่มฟิลด์นี้
   chatRequestsReceived ChatRequest[] @relation("Receiver") // เพิ่มฟิลด์นี้
-  otps              Otp[]
-  likes             Like[]
-  comments          Comment[]
-  initiated_calls   Call[]           @relation("InitiatedCalls")
-  received_calls    Call[]           @relation("ReceivedCalls")
+  otps                 Otp[]
+  likes                Like[]
+  comments             Comment[]
+  initiated_calls      Call[]        @relation("InitiatedCalls")
+  received_calls       Call[]        @relation("ReceivedCalls")
+
   @@index([username]) // Index สำหรับค้นหา Username
 }
 
 model Category {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  posts           Post[]
-  created_at      DateTime         @default(now())
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  posts      Post[]
+  created_at DateTime @default(now())
+
   @@index([name]) // Index สำหรับค้นหา Category
 }
 
 model Post {
-  id           Int          @id @default(autoincrement())
-  authorId     Int
-  category_id  Int
-  user         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  category     Category     @relation(fields: [category_id], references: [id], onDelete: Restrict)
-  images       PostImage[]
-  title        String
-  content      String
-  created_at   DateTime     @default(now())
-  likes        Like[]
-  comments     Comment[]
+  id          Int         @id @default(autoincrement())
+  authorId    Int
+  category_id Int
+  user        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category    Category    @relation(fields: [category_id], references: [id], onDelete: Restrict)
+  images      PostImage[]
+  title       String
+  content     String
+  created_at  DateTime    @default(now())
+  likes       Like[]
+  comments    Comment[]
+
   @@index([authorId]) // Index สำหรับค้นหาตามผู้เขียน
 }
 
 model PostImage {
-  id        Int      @id @default(autoincrement())
-  post_id   Int
-  post      Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  image_url String
+  id         Int      @id @default(autoincrement())
+  post_id    Int
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  image_url  String
   created_at DateTime @default(now())
-  @@index([post_id]) // Index สำหรับค้นหาตาม Post
+
   @@unique([post_id, id]) // กันซ้ำใน Post เดียวกัน
+  @@index([post_id]) // Index สำหรับค้นหาตาม Post
 }
 
 model Connection {
-  id           Int              @id @default(autoincrement())
-  user1_id     Int
-  user2_id     Int
-  user1        User             @relation("User1Connections", fields: [user1_id], references: [id], onDelete: Cascade)
-  user2        User             @relation("User2Connections", fields: [user2_id], references: [id], onDelete: Cascade)
-  status       ConnectionStatus @default(PENDING)
-  created_at   DateTime         @default(now())
+  id         Int              @id @default(autoincrement())
+  user1_id   Int
+  user2_id   Int
+  user1      User             @relation("User1Connections", fields: [user1_id], references: [id], onDelete: Cascade)
+  user2      User             @relation("User2Connections", fields: [user2_id], references: [id], onDelete: Cascade)
+  status     ConnectionStatus @default(PENDING)
+  created_at DateTime         @default(now())
+
   @@unique([user1_id, user2_id])
   @@index([user1_id, user2_id]) // Index สำหรับค้นหาความสัมพันธ์
 }
 
 model Message {
-  id           Int       @id @default(autoincrement())
-  sender_id    Int
-  receiver_id  Int
-  sender       User      @relation("SentMessages", fields: [sender_id], references: [id], onDelete: Cascade)
-  receiver     User      @relation("ReceivedMessages", fields: [receiver_id], references: [id], onDelete: Cascade)
-  content      String
-  sent_at      DateTime  @default(now())
-  is_request   Boolean   @default(false) // ยังคงไว้สำหรับกรณีที่ต้องการ
+  id          Int      @id @default(autoincrement())
+  sender_id   Int
+  receiver_id Int
+  sender      User     @relation("SentMessages", fields: [sender_id], references: [id], onDelete: Cascade)
+  receiver    User     @relation("ReceivedMessages", fields: [receiver_id], references: [id], onDelete: Cascade)
+  content     String
+  sent_at     DateTime @default(now())
+  is_request  Boolean  @default(false) // ยังคงไว้สำหรับกรณีที่ต้องการ
+
+  is_read      Boolean   @default(false)
+  is_delivered Boolean   @default(true)
+  is_failed    Boolean   @default(false)
+
   @@index([sender_id, receiver_id]) // Index สำหรับค้นหาข้อความ
 }
 
 model ChatRequest {
-  id           Int       @id @default(autoincrement())
-  sender_id    Int
-  receiver_id  Int
-  sender       User      @relation("Sender", fields: [sender_id], references: [id], onDelete: Cascade)
-  receiver     User      @relation("Receiver", fields: [receiver_id], references: [id], onDelete: Cascade)
-  message      String
-  status       RequestStatus @default(PENDING) // เพิ่ม Enum สำหรับสถานะ
-  created_at   DateTime  @default(now())
-  @@unique([sender_id, receiver_id])
+  id                   Int           @id @default(autoincrement())
+  sender_id            Int
+  receiver_id          Int
+  sender               User          @relation("Sender", fields: [sender_id], references: [id], onDelete: Cascade)
+  receiver             User          @relation("Receiver", fields: [receiver_id], references: [id], onDelete: Cascade)
+  message              String
+  status               RequestStatus @default(PENDING) // เพิ่ม Enum สำหรับสถานะ
+  created_at           DateTime      @default(now())
+  // kate edit เพื่อให้ข้อความสามารถส่งซ้ำได้
+  // @@unique([sender_id, receiver_id])
+  // เอามาเพื่อทำ spamlist
+  hidden_from_receiver Boolean       @default(false)
+
   @@index([receiver_id, status]) // Index สำหรับค้นหาคำขอ
 }
 
 model Otp {
-  id           Int       @id @default(autoincrement())
-  user_id      Int
-  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  code         String
-  expires_at   DateTime
-  is_used      Boolean   @default(false)
-  created_at   DateTime  @default(now())
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  code       String
+  expires_at DateTime
+  is_used    Boolean  @default(false)
+  created_at DateTime @default(now())
+
   @@index([user_id]) // Index สำหรับค้นหาตาม User
 }
 
 model Like {
-  id           Int       @id @default(autoincrement())
-  user_id      Int
-  post_id      Int
-  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  post         Post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  created_at   DateTime  @default(now())
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  post_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+
   @@unique([user_id, post_id])
   @@index([user_id, post_id]) // Index สำหรับค้นหา Like
 }
 
 model Comment {
-  id           Int       @id @default(autoincrement())
-  user_id      Int
-  post_id      Int
-  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  post         Post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  content      String
-  created_at   DateTime  @default(now())
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  post_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  content    String
+  created_at DateTime @default(now())
+
   @@index([user_id, post_id]) // Index สำหรับค้นหาคอมเมนต์
 }
 
 model Call {
-  id           Int       @id @default(autoincrement())
-  caller_id    Int
-  receiver_id  Int
-  caller       User      @relation("InitiatedCalls", fields: [caller_id], references: [id], onDelete: Cascade)
-  receiver     User      @relation("ReceivedCalls", fields: [receiver_id], references: [id], onDelete: Cascade)
-  type         CallType
-  duration     Int?
-  started_at   DateTime
-  ended_at     DateTime?
-  @@unique([caller_id, receiver_id, started_at])
-  @@index([caller_id, receiver_id]) // Index สำหรับค้นหา Call
+  id          Int        @id @default(autoincrement())
+  caller_id   Int
+  receiver_id Int
+  caller      User       @relation("InitiatedCalls", fields: [caller_id], references: [id], onDelete: Cascade)
+  receiver    User       @relation("ReceivedCalls", fields: [receiver_id], references: [id], onDelete: Cascade)
+  type        CallType
+  status      CallStatus @default(RINGING) // ✅ เพิ่มสถานะ
+  duration    Int? // หน่วย: วินาที
+  started_at  DateTime? // เริ่มเมื่อกดรับสาย
+  ended_at    DateTime? // จบสาย
+
+  created_at DateTime @default(now())
+
+  @@index([caller_id, receiver_id])
 }
 
 enum Role {
   ADMIN
   USER
   GUEST
-}
+} 
 
 enum ConnectionStatus {
   PENDING
@@ -485,4 +502,12 @@ enum RequestStatus {
 enum CallType {
   VOICE
   VIDEO
+}
+
+enum CallStatus {
+  RINGING // รอโทรเข้า
+  ONGOING // รับสายแล้ว
+  ENDED // วางสายแล้ว
+  DECLINED // ปฏิเสธสาย
+  CANCELED // ยกเลิกสาย
 }

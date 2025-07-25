@@ -14,10 +14,12 @@ export class AuthController {
     return this.authService.login(body);
   }
 
+
   @Post('register-step1')
   async registerStep1(@Body() body: { email: string; password: string; confirmPassword: string }) {
     return this.authService.registerStep1(body);
   }
+
 
   @Post('register-step2')
   async registerStep2(@Body() body: { email: string; otp: string }) {
@@ -47,4 +49,5 @@ export class AuthController {
   async resendOtp(@Body() body: { email: string }) {
     return this.authService.resendOtp(body.email);
   }
+
 }
