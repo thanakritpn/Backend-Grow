@@ -13,6 +13,7 @@ async function bootstrap() {
       'http://localhost:5175',
       'http://127.0.0.1:5173', 
     'http://localhost:5173',
+    'https://growtogether.typedelta.dev',
     ],
     credentials: true, // Allow requests from Vite frontend
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS', // Allow these HTTP methods
