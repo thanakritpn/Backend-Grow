@@ -5,7 +5,7 @@ services:
     networks:
      - growtogether-network
     ports:
-      - "3000:3000"
+      - "13001:3000"
     depends_on:
       - growtogether-db
     env_file:
@@ -18,7 +18,7 @@ services:
     networks:
      - growtogether-network
     ports:
-      - "5173:5173"
+      - "13002:5173"
     depends_on:
       - growtogether-db
     env_file:
