@@ -2,8 +2,9 @@ services:
   growtogether_Backend:
     container_name: growtogether_backend
     image: growtogether-backend:latest
+    restart: always  
     networks:
-     - growtogether-network
+      - growtogether-network
     ports:
       - "13001:3000"
     depends_on:
@@ -11,12 +12,12 @@ services:
     env_file:
       - .env.production
 
-
   growtogether_Fontend:
     container_name: growtogether_Fontend
     image: grow-app:latest
+    restart: always  
     networks:
-     - growtogether-network
+      - growtogether-network
     ports:
       - "13002:5173"
     depends_on:
@@ -24,22 +25,21 @@ services:
     env_file:
       - .env.production
 
-
   growtogether-db:
     container_name: growtogether-db
     image: postgres:14.18
+    restart: always 
     environment:
-      -  POSTGRES_PASSWORD=1234
-      -  POSTGRES_USER=postgres
-      -  POSTGRES_DB=GrowToGether
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=GrowToGether
     networks:
-     - growtogether-network
+      - growtogether-network
     volumes:
       - growtogether:/var/lib/postgresql/data
 
-volumes: 
+volumes:
   growtogether:
 
 networks:
   growtogether-network:
-  
