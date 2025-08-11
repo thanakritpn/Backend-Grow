@@ -22,8 +22,17 @@ export class ProfileService {
             content: true,
             created_at: true,
             images: {
+              select: { image_url: true },
+            },
+            category: {
               select: {
-                image_url: true,
+                name: true,
+              },
+            },
+            user: {
+              select: {
+                username: true,
+                profile_picture: true,
               },
             },
           },
@@ -45,28 +54,43 @@ export class ProfileService {
       where: { user1_id: Number(userId), status: 'ACCEPTED' },
     });
 
-    const age = user.date_of_birth ? Math.floor((new Date().getTime() - user.date_of_birth.getTime()) / (1000 * 60 * 60 * 24 * 365)) : null;
+    const age = user.date_of_birth
+      ? Math.floor(
+          (new Date().getTime() - user.date_of_birth.getTime()) /
+            (1000 * 60 * 60 * 24 * 365),
+        )
+      : null;
 
     return {
       id: user.id,
       username: user.username,
       followers: followers,
       following: following,
-      profilePicture: user.profile_picture || 'http://example.com/default.jpg',
+      profilePicture:
+        user.profile_picture || 'http://example.com/default.jpg',
       coverPhoto: user.cover_photo || 'http://example.com/default-cover.jpg',
       aboutMe: user.about_me || '',
       knowledgeInterests: user.knowledge_interests || [],
-      posts: user.posts.map(post => ({
+      posts: user.posts.map((post) => ({
         id: post.id,
         title: post.title,
         content: post.content,
-        images: post.images.map(img => img.image_url),
+        images: post.images.map((img) => img.image_url),
         created_at: post.created_at,
+        category: {
+          name: post.category?.name || 'Uncategorized',
+        },
+        user: {
+          username: post.user?.username || user.username,
+          profile_picture:
+            post.user?.profile_picture || user.profile_picture,
+        },
       })),
       lastActive: user.last_active,
       age: age,
     };
   }
+
 
   async updateMyProfile(req: Request, data: { profilePicture?: string; coverPhoto?: string; aboutMe?: string; knowledgeInterests?: string[] }) {
     const userId = req.user?.id;
