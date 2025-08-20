@@ -1,6 +1,8 @@
 import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Request } from 'express';
+import * as fs from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class ProfileService {
@@ -92,42 +94,72 @@ export class ProfileService {
   }
 
 
-  async updateMyProfile(req: Request, data: { profilePicture?: string; coverPhoto?: string; aboutMe?: string; knowledgeInterests?: string[] }) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new UnauthorizedException('User not authenticated');
-    }
-
-    const { profilePicture, coverPhoto, aboutMe, knowledgeInterests } = data;
-
-    if (knowledgeInterests && !Array.isArray(knowledgeInterests)) {
-      throw new BadRequestException('Knowledge interests must be an array');
-    }
-
-    const updatedUser = await this.prisma.user.update({
-      where: { id: Number(userId) },
-      data: {
-        profile_picture: profilePicture,
-        cover_photo: coverPhoto,
-        about_me: aboutMe,
-        knowledge_interests: knowledgeInterests,
-        last_active: new Date(),
-      },
-    });
-
-    return {
-      message: 'Profile updated successfully',
-      user: {
-        id: updatedUser.id,
-        username: updatedUser.username,
-        profile_picture: updatedUser.profile_picture,
-        cover_photo: updatedUser.cover_photo,
-        about_me: updatedUser.about_me,
-        knowledge_interests: updatedUser.knowledge_interests,
-        last_active: updatedUser.last_active,
-      },
-    };
+async updateMyProfile(
+  req: Request,
+  data: {
+    profilePicture?: string;
+    coverPhoto?: string;
+    aboutMe?: string;
+    knowledgeInterests?: string[];
+  } = {},
+) {
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new UnauthorizedException('User not authenticated');
   }
+
+  const { profilePicture, coverPhoto, aboutMe, knowledgeInterests } = data;
+
+  const existingUser = await this.prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      profile_picture: true,
+      cover_photo: true,
+    },
+  });
+
+  // ✅ ลบรูปโปรไฟล์เก่า
+  if (profilePicture && existingUser?.profile_picture && existingUser.profile_picture !== profilePicture) {
+    const oldPath = join(process.cwd(), existingUser.profile_picture);
+    if (fs.existsSync(oldPath)) {
+      fs.unlinkSync(oldPath);
+      console.log('🗑️ Deleted old profile picture:', oldPath);
+    }
+  }
+
+  // ✅ ลบ cover photo เก่า
+  if (coverPhoto && existingUser?.cover_photo && existingUser.cover_photo !== coverPhoto) {
+    const oldPath = join(process.cwd(), existingUser.cover_photo);
+    if (fs.existsSync(oldPath)) {
+      fs.unlinkSync(oldPath);
+      console.log('🗑️ Deleted old cover photo:', oldPath);
+    }
+  }
+
+  const updatedUser = await this.prisma.user.update({
+    where: { id: userId },
+    data: {
+      profile_picture: profilePicture,
+      cover_photo: coverPhoto,
+      about_me: aboutMe,
+      knowledge_interests: knowledgeInterests,
+      last_active: new Date(),
+    },
+  });
+
+  return {
+    message: 'Profile updated successfully',
+    user: {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      profile_picture: updatedUser.profile_picture,
+      cover_photo: updatedUser.cover_photo,
+      about_me: updatedUser.about_me,
+      knowledge_interests: updatedUser.knowledge_interests,
+      last_active: updatedUser.last_active,
+    },
+  };
+}
 
   async getUserProfile(userId: number, currentUserId: number) {
     const user = await this.prisma.user.findUnique({
