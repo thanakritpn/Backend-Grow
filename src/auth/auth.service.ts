@@ -21,24 +21,32 @@ export class AuthService {
   constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
   async login(data: { email: string; password: string }) {
-    const { email, password } = data;
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    const token = this.jwtService.sign({ email: user.email, username: user.username });
-    return {
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        profile_picture: user.profile_picture,
-      }
-    };
-
+  const { email, password } = data;
+  const user = await this.prisma.user.findUnique({ where: { email } });
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    throw new UnauthorizedException('Invalid credentials');
   }
+
+  // ✅ อัปเดต last_active เมื่อ login สำเร็จ
+  await this.prisma.user.update({
+    where: { id: user.id },
+    data: { last_active: new Date() },
+  });
+
+  const token = this.jwtService.sign({ email: user.email, username: user.username });
+  return {
+    token,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      profile_picture: user.profile_picture,
+    }
+  };
+}
+
+
 
   async registerStep1(data: { email: string; password: string; confirmPassword: string }) {
     const { email, password, confirmPassword } = data;

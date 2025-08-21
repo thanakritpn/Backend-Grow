@@ -36,11 +36,14 @@ export class PostsController {
     return this.postsService.getPosts(categoryId, limit);
   }
 
-  @Get(':postId')
-  @UseGuards(JwtAuthGuard)
-  async getPostById(@Param('postId') postId: number) {
-    return this.postsService.getPostById(postId);
-  }
+ @Get(':postId')
+@UseGuards(JwtAuthGuard)
+async getPostById(@Param('postId') postId: number, @Req() req: Request) {
+  const userId = req.user?.id;
+  return this.postsService.getPostById(postId, userId);
+}
+
+  
 
   @Post(':postId/like')
   @UseGuards(JwtAuthGuard)

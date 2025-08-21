@@ -15,7 +15,7 @@ export class PostsService {
     const post = await this.prisma.post.create({
       data: {
         authorId: userId,
-        category_id: Number(categoryId), // แปลงเป็น Number อย่างชัดเจน
+        category_id: Number(categoryId), 
         title,
         content,
       },
@@ -51,69 +51,70 @@ export class PostsService {
   }
 
 
-  async getPostById(postId: number) {
-    const post = await this.prisma.post.findUnique({
-      where: { id: Number(postId) },
-      include: {
-        user: { select: { id: true, username: true } },
-        images: true,
-        likes: { select: { user_id: true } },
-        comments: { 
-          select: { 
-            id: true, 
-            content: true, 
-            user: { select: { username: true } }, 
-            created_at: true 
-          } 
-        },
+  async getPostById(postId: number, userId?: number) {
+  const post = await this.prisma.post.findUnique({
+    where: { id: Number(postId) },
+    include: {
+      user: { select: { id: true, username: true } },
+      images: true,
+      likes: { select: { user_id: true } },
+      comments: {
+        select: {
+          id: true,
+          content: true,
+          user: { select: { username: true } },
+          created_at: true
+        }
       },
-    });
+    },
+  });
 
-
-
-    if (!post) {
-      throw new NotFoundException(`Post with ID ${postId} not found`);
-    }
-
-
-
-
-    const userAge = 23;
-    const category = await this.prisma.category.findUnique({ where: { id: post.category_id } });
-    const categoryName = category ? category.name : 'Unknown';
-
-    return {
-      user: { username: post.user.username, age: userAge },
-      category: categoryName,
-      title: post.title,
-      content: post.content,
-      images: post.images.map(img => img.image_url),
-      likesCount: post.likes.length,
-      commentsCount: post.comments.length,
-      comments: post.comments,
-    };
+  if (!post) {
+    throw new NotFoundException(`Post with ID ${postId} not found`);
   }
 
+  const isLikedByCurrentUser = userId
+    ? post.likes.some((like) => like.user_id === userId)
+    : false;
+
+  const category = await this.prisma.category.findUnique({ where: { id: post.category_id } });
+  const categoryName = category ? category.name : 'Unknown';
+
+  return {
+    user: { username: post.user.username, age: 23 },
+    category: categoryName,
+    title: post.title,
+    content: post.content,
+    images: post.images.map(img => img.image_url),
+    likesCount: post.likes.length,
+    isLikedByCurrentUser,
+    commentsCount: post.comments.length,
+    comments: post.comments,
+  };
+}
+
   async likePost(postId: number, userId: number) {
-    const post = await this.prisma.post.findUnique({ where: { id: Number(postId) } });
-    if (!post) {
-      throw new NotFoundException(`Post with ID ${postId} not found`);
-    }
+  const post = await this.prisma.post.findUnique({ where: { id: Number(postId) } });
+  if (!post) {
+    throw new NotFoundException(`Post with ID ${postId} not found`);
+  }
 
-    const existingLike = await this.prisma.like.findFirst({
-      where: { post_id: Number(postId), user_id: userId },
-    });
-    if (existingLike) {
-      throw new BadRequestException('Already liked');
-    }
+  const existingLike = await this.prisma.like.findFirst({
+    where: { post_id: Number(postId), user_id: userId },
+  });
 
+  if (!existingLike) {
     await this.prisma.like.create({
       data: { post_id: Number(postId), user_id: userId },
     });
-
-    const likesCount = await this.prisma.like.count({ where: { post_id: Number(postId) } });
-    return { message: 'Post liked successfully', likesCount };
   }
+
+  const likesCount = await this.prisma.like.count({ where: { post_id: Number(postId) } });
+  return { message: 'Post liked (or already liked)', likesCount };
+}
+
+
+
 
   async unlikePost(postId: number, userId: number) {
     const post = await this.prisma.post.findUnique({ where: { id: Number(postId) } });
