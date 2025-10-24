@@ -313,7 +313,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
+  // Use a direct connection (bypass PgBouncer) for migrations and introspection
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
